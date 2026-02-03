@@ -4,6 +4,7 @@ import { testUser } from "src/users/tests/user-seeds";
 import { ChangeSeats } from "./change-seats";
 import { InMemoryWebinarRepository } from "../adapters/webinar-repository.in-memory";
 import { Webinar } from "../entities/webinar.entity";
+import { User } from "src/users/entities/user.entity";
 
 
 
@@ -35,10 +36,9 @@ describe('Feature : Change seats', () => {
     it('should change the number of seats for a webinar', async () => {
      // Vérification de la règle métier, condition testée...
       // ACT
-      await useCase.execute(payload);
+      await whenUserChangeSeatsWith(payload);
       // ASSERT
-      const updatedWebinar = await webinarRepository.findById('webinar-id');
-      expect(updatedWebinar?.props.seats).toEqual(200);
+      await thenUpdatedWebinarSeatsShouldBe(webinarRepository);
     });
   });
 
@@ -92,6 +92,17 @@ describe('Feature : Change seats', () => {
     });
   });
 });
+
+async function thenUpdatedWebinarSeatsShouldBe(webinarRepository: InMemoryWebinarRepository) {
+  const updatedWebinar = await webinarRepository.findById('webinar-id');
+  expect(updatedWebinar?.props.seats).toEqual(200);
+}
+
+async function whenUserChangeSeatsWith(payload: { user: User; webinarId: string; seats: number; }) {
+  const webinarRepository = new InMemoryWebinarRepository();
+  const useCase = new ChangeSeats(webinarRepository);
+  await useCase.execute(payload);
+}
 
 function expectWebinarToRemainUnchanged(webinarRepository: InMemoryWebinarRepository) {
   const webinar = webinarRepository.findByIdSync('webinar-id');
