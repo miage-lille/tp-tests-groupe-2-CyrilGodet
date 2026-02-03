@@ -24,7 +24,7 @@ describe('Feature : Change seats', () => {
         webinarRepository = new InMemoryWebinarRepository([webinar]);
         useCase = new ChangeSeats(webinarRepository);
     });
-    
+
   describe('Scenario: Happy path', () => {
     // Code commun à notre scénario : payload...
     const payload = {
@@ -39,6 +39,56 @@ describe('Feature : Change seats', () => {
       // ASSERT
       const updatedWebinar = await webinarRepository.findById('webinar-id');
       expect(updatedWebinar?.props.seats).toEqual(200);
+    });
+  });
+
+  describe('Scenario: webinar does not exist', () => {
+    const payload = {
+      user: testUser.alice,
+      webinarId: 'non-existent-webinar-id',
+      seats: 200,
+    };
+    it('should fail', async () => {
+      const webinar = webinarRepository.findByIdSync('webinar-id');
+      expect(webinar?.props.seats).toEqual(100);
+
+      return expect(useCase.execute(payload)).rejects.toThrow('Webinar not found');
+    });
+  });
+
+  describe('Scenario: update the webinar of someone else', () => {
+    const payload = { 
+      user: testUser.bob,
+      webinarId: 'webinar-id',
+      seats: 100,
+    };
+    it('should fail', async () => {
+      const webinar = webinarRepository.findByIdSync('webinar-id');
+      expect(webinar?.props.seats).toEqual(100);
+
+      return expect(useCase.execute(payload)).rejects.toThrow('User is not allowed to update this webinar');
+    });
+  });
+
+  describe('Scenario: change seat to an inferior number', () => {
+    const payload = { 
+      user: testUser.alice,
+      webinarId: 'webinar-id',
+      seats: 99,
+    };
+    it('should fail to change the number of seats for a webinar', async () => {
+      return expect(useCase.execute(payload)).rejects.toThrow('You cannot reduce the number of seats');
+    });
+  });
+
+  describe('Scenario: change seat to a number > 1000', () => {
+    const payload = { 
+      user: testUser.alice,
+      webinarId: 'webinar-id',
+      seats: 1001,
+    };
+    it('should fail to change the number of seats for a webinar', async () => {
+      return expect(useCase.execute(payload)).rejects.toThrow('Webinar must have at most 1000 seats');
     });
   });
 });
