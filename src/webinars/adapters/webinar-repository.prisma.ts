@@ -18,7 +18,15 @@ export class PrismaWebinarRepository implements IWebinarRepository {
     if (!maybeWebinar) {
       return null;
     }
-    return WebinarMapper.toEntity(maybeWebinar);
+    // Ensure the result is mapped to a Webinar entity
+    return new Webinar({
+      id: maybeWebinar.id,
+      organizerId: maybeWebinar.organizerId,
+      title: maybeWebinar.title,
+      startDate: maybeWebinar.startDate,
+      endDate: maybeWebinar.endDate,
+      seats: maybeWebinar.seats,
+    });
   }
   async update(webinar: Webinar): Promise<void> {
     await this.prisma.webinar.update({
