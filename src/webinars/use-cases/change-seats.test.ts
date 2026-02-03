@@ -49,8 +49,7 @@ describe('Feature : Change seats', () => {
       seats: 200,
     };
     it('should fail', async () => {
-      const webinar = webinarRepository.findByIdSync('webinar-id');
-      expect(webinar?.props.seats).toEqual(100);
+      expectWebinarToRemainUnchanged(webinarRepository);
 
       return expect(useCase.execute(payload)).rejects.toThrow('Webinar not found');
     });
@@ -63,8 +62,7 @@ describe('Feature : Change seats', () => {
       seats: 100,
     };
     it('should fail', async () => {
-      const webinar = webinarRepository.findByIdSync('webinar-id');
-      expect(webinar?.props.seats).toEqual(100);
+      expectWebinarToRemainUnchanged(webinarRepository);
 
       return expect(useCase.execute(payload)).rejects.toThrow('User is not allowed to update this webinar');
     });
@@ -77,6 +75,7 @@ describe('Feature : Change seats', () => {
       seats: 99,
     };
     it('should fail to change the number of seats for a webinar', async () => {
+      expectWebinarToRemainUnchanged(webinarRepository);
       return expect(useCase.execute(payload)).rejects.toThrow('You cannot reduce the number of seats');
     });
   });
@@ -88,7 +87,13 @@ describe('Feature : Change seats', () => {
       seats: 1001,
     };
     it('should fail to change the number of seats for a webinar', async () => {
+      expectWebinarToRemainUnchanged(webinarRepository);
       return expect(useCase.execute(payload)).rejects.toThrow('Webinar must have at most 1000 seats');
     });
   });
 });
+
+function expectWebinarToRemainUnchanged(webinarRepository: InMemoryWebinarRepository) {
+  const webinar = webinarRepository.findByIdSync('webinar-id');
+  expect(webinar?.props.seats).toEqual(100);
+}
